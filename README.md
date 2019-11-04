@@ -16,11 +16,8 @@ Three test files are included under resources/keys folder. They can be run by -
 
 ## Dependencies
 
-The project depends on the following Java8 API's - 
+The project depends on the following Java8 API - 
 
 1. `java.util.Base64`
-2. `java.time`
 
-`java.util.Base64` is used in place of `javax.xml.bind.DatatypeConverter` for reading base64 bytes into bytes. ``javax.xml.bind.DatatypeConverter` is not available in Java8. 
-
-`java.time` is needed for parsing UTC time values. 
+`java.util.Base64` is used in place of `javax.xml.bind.DatatypeConverter` for reading the base64 string into bytes. `javax.xml.bind.DatatypeConverter` is not available in Java8. 
