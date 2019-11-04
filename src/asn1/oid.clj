@@ -33,6 +33,7 @@
         oid-node-combinations))
 
 (defn split-with-vlq
+  "Returns the vlq nodes and non vlq nodes."
   [coll]
   (loop [[f & r] coll
          acc     []]
