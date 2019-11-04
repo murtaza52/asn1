@@ -5,12 +5,12 @@
   (bit-or (bit-shift-left v1 8) v2))
 
 (defn short-form-length?
-  "If the 8th bit is 0 then it is short form."
+  "If the 7th bit is 0 then it is short form."
   [v]
   (= 0 (bit-shift-right v 7)))
 
 (defn long-form-length?
-  "If the 8th bit is 1 then its long form."
+  "If the 7th bit is 1 then its long form."
   [v]
   (= 1 (bit-shift-right v 7)))
 
