@@ -10,7 +10,7 @@
   [path]
   (doall (line-seq (io/reader path))))
 
-(read-lines "resources/public.crt")
+(comment (read-lines "resources/public.crt"))
 
 (defn comment?
   [line]
@@ -20,13 +20,14 @@
   [coll]
   (reduce str "" (remove comment? coll)))
 
-(remove-comments (read-lines "resources/public.crt"))
+(comment (remove-comments (read-lines "resources/public.crt")))
 
 (defn base64-bytes
   [^String b64-str]
   (.decode (java.util.Base64/getDecoder) b64-str))
 
-(base64-bytes (remove-comments (read-lines "resources/public.crt")))
+(comment (base64-bytes (remove-comments (read-lines "resources/public.crt")))
+         (base64-bytes (remove-comments (read-lines "resources/keys/ec.pem"))))
 
 (defn bytes->buffer
   [b64-bytes]

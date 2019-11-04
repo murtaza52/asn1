@@ -13,3 +13,11 @@
 
 (bit-7? 0x82)
 ;; => true
+
+(defn to-hex
+  [coll]
+  (map #(Long/toHexString %) coll))
+
+(to-hex '(42 134 72 134 247 13 1 1 11))
+;; => ("2a" "86" "48" "86" "f7" "d" "1" "1" "b")
+

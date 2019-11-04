@@ -1,4 +1,5 @@
 (ns asn1.tags
+  (:require [asn1.common :refer [to-hex]])
   (:import java.time.Instant
            java.time.Year))
 
@@ -24,44 +25,32 @@
 (def misc
   {0x17 :utc-time})
 
-(defn int->tag-type
-  [n]
-  (get
-   (merge basic-types string-types constructed-types misc)
-   n
-   :tag-not-found))
+(defn context-specific-tag?
+  [v]
+  (= 2r10 (bit-shift-right v 6)))
 
-(int->tag-type 0x30)
-
-(defn bit-6-0?
-  "Returns true if the 6th bit is set to 0."
-  [b]
-  (= 0 (bit-and 2r00000100 b)))
-
-(bit-6-0? 2r10101010)
+(context-specific-or-private-tag? 0xA0)
 ;; => true
 
-(bit-6-0? 2r10101110)
+(context-specific-or-private-tag? 0x06)
 ;; => false
 
-(defn tag-value
-  [b]
-  (bit-and 2r11111000 b))
+(defn int->tag-type
+  [v]
+  (if (context-specific-tag? v)
+    :context-specific-tag
+    (get
+     (merge basic-types string-types constructed-types misc)
+     v
+     {:tag-not-found-for-hex (Long/toHexString v)})))
 
-(Long/toBinaryString (bit-shift-right 2r10101000 3))
+(int->tag-type 0x30)
+;; => :sequence
 
-(defn get-tag-bytes
-  "Returns the tag value represented by the first 5 bits"
-  [b]
-  (bit-shift-right b 3))
+(int->tag-type 0xA0)
+;; => :context-specific-tag
 
-(Long/toBinaryString (get-tag-bytes 2r10101000))
-
-(Long/toHexString (get-tag-bytes 0x30))
-
-;;;; primitive definite length encoding for simple types ;;;;
-
-;;; identifier octets
+(def constructed-type? #{:sequence :set :context-specific-tag})
 
 ;; low-tag-number form (the high-tag-number-form is not coded, because in simple types we do not have tags above 30)
 
@@ -171,3 +160,13 @@
 (def utc-time-data '(50 48 49 48 50 51 49 52 49 53 52 49 90))
 
 (parse-utc-time utc-time-data)
+
+(defn parse-octet-string
+  [coll]
+  (->> coll
+       to-hex
+       (apply str)))
+
+(def octet-string-data '(87 241 49 245 166 29 26 131 118 204 195 116 144 85 15 4 120 55 28 195 29 18 181 73 238 181 186 205 123 193 94 227))
+
+(parse-octet-string octet-string-data);; => "57f131f5a61d1a8376ccc3749055f478371cc31d12b549eeb5bacd7bc15ee3"

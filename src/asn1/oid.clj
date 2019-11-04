@@ -22,7 +22,7 @@
 (decode-vlq [0x82 0x37])
 ;; => 311
 
-(decode-vlq [0x82 0x37 0x21]) ;; this is wrong, maybe the encoing is incorrect as given on the site. 
+(decode-vlq [0x82 0x37 0x21]) ;; this is wrong, maybe the encoing is incorrect as given on the site.
 
 (Long/toBinaryString 0x37)
 

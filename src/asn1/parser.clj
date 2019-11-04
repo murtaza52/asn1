@@ -6,52 +6,6 @@
             [asn1.buffer :refer :all])
   (:gen-class))
 
-(defn parse-asn1
-  [bb]
-  bb)
-
-;; (defn -main [& args]
-;;   (if-let [key-path (first args)]
-;;     (pprint (parse-asn1 (bytes->buffer key-path)))
-;;     (binding [*out* *err*]
-;;       (println "no path given")
-;;       (System/exit 1))))
-
-{:tag-type :sequence :length 1 :value 1}
-
-(comment (def data ["30" "23" "31" "0f" "30" "0d" "06" "03" "55" "04" "03" "13" "06" "54" "65" "73" "74" "43" "4e" "31" "10" "30" "0e" "06" "03" "55" "04" "0a" "13" "07" "54" "65" "73" "74" "4f" "72" "67"]))
-
-(defn parse-asn1
-  [coll]
-  (loop [[f & r] coll
-         acc     {}]))
-
-(comment
-  (loop [[a b & c] [1 2 3 4 5]
-         acc       {:t a :l b :v 1}]
-    (recur {})))
-
-(comment
-  (def a (file->int-seq "resources/public.crt"))
-  (= (byte 0x30) (.getInt a))
-
-  (def data-3 (file->int-seq "resources/public.crt")))
-
-(def data-2 [0x30 0x82 0x03 0x0D 1 2 3 4])
-
-(defn constructed-type?
-  "Returns true if the 6th bit is set to 1."
-  [v]
-  (= 2r100000 (bit-and v 2r00100000)))
-
-(constructed-type? 0x31)
-;; => true
-
-(constructed-type? 0x02)
-;; => false
-
-(def constructed-type? #{:sequence :set})
-
 (defn get-triplet
   [[f & r]]
   (let [{:keys [length-octets length]} (get-length r)
@@ -79,7 +33,7 @@
         (concat acc triplet)
         (recur remaining-octets (concat acc triplet))))))
 
-(get-triplet-seq '(6 9 42 134 72 134 247 13 1 1 11 5 0))
+;; (get-triplet-seq '(6 9 42 134 72 134 247 13 1 1 11 5 0))
 ;; => ({:tag :object-identifier, :length 9, :value {:oid "1.2.840.113549.1.1.11", :oid-text :sha256WithRSAEncryption}} {:tag :null, :length 0, :value nil})
 
 (defn parse-value
@@ -92,6 +46,7 @@
     :utf8-string (parse-string value)
     :bit-string (parse-bit-string value)
     :utc-time (parse-utc-time value)
+    :octet-string (parse-octet-string value)
     :null nil
     value))
 
@@ -99,12 +54,11 @@
   [coll]
   (loop [coll coll
          acc  []]
-    (let [[{:keys [tag length value]} remaining-octets] (get-triplet coll)
-          triplet                                         {:tag tag :length length}]
-      (let [parsed-triplet (assoc triplet :value (parse-value tag value))]
+    (let [[{:keys [tag length value]} remaining-octets] (get-triplet coll)]
+      (let [triplet (assoc {:tag tag :length length} :value (parse-value tag value))]
         (if (not (seq remaining-octets))
-          (conj acc parsed-triplet)
-          (recur remaining-octets (conj acc parsed-triplet)))))))
+          (conj acc triplet)
+          (recur remaining-octets (conj acc triplet)))))))
 
 :t    :l     :v
              :t   :l   :v
@@ -114,14 +68,27 @@
 (parse-tlv d)
 ;; => [{:tag :sequence, :length 8, :value {:tag :sequence, :length 8, :value [{:tag :sequence, :length 6, :value [{:tag :integer, :length 1, :value (5)} {:tag :integer, :length 1, :value (53)}]}]}}]
 
-
-(defn to-hex
-  [coll]
-  (map #(Long/toHexString %) coll))
-
-(to-hex '(42 134 72 134 247 13 1 1 11))
-;; => ("2a" "86" "48" "86" "f7" "d" "1" "1" "b")
-
 (comment (clojure.pprint/pprint (parse-tlv data-3)))
 
+(def parse-asn1 (comp parse-tlv file->int-seq))
+
+(def parse-and-print (comp pprint parse-asn1))
+
+(comment (parse-and-print "resources/keys/rsa.key")
+         (parse-and-print "resources/keys/ec.pem")
+         (parse-and-print "resources/keys/rsa_public.crt"))
+
+(comment (parse-and-print "resources/keys/rsa.key")
+         (parse-asn1 "resources/keys/ec.pem"))
+
+(parse-asn1 "resources/keys/ec.pem")
+;; => [{:tag :sequence, :length 119, :value ({:tag :integer, :length 1, :value 1} {:tag :octet-string, :length 32, :value "57f131f5a61d1a8376ccc3749055f478371cc31d12b549eeb5bacd7bc15ee3"} {:tag :context-specific-tag, :length 10, :value [{:tag :object-identifier, :length 8, :value {:oid "1.2.840.10045.3.1.7", :oid-text :P-256}}]} {:tag :context-specific-tag, :length 68, :value [{:tag :bit-string, :length 66, :value "0100110100010011110001001110001110010100010011001100110111101111011001011000100010011010101100111101111001011110110100110101001110111001111001001110000010101110111011111010010011100101100001100101001001001000010110000111100100011110010011101001111001011110010110111001010010111100011111101010011001111010010010011011000110001100110101111110111011001101011111100001110101100111010111010001010100101100101110110110101111111001111001101010011101011"}]})}]
+
+
+(defn -main [& args]
+  (if-let [key-path (first args)]
+    (pprint (parse-asn1 (comp bytes->buffer key-path)))
+    (binding [*out* *err*]
+      (println "no path given")
+      (System/exit 1))))
 
