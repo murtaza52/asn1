@@ -21,7 +21,6 @@ The project depends on the following Java8 API's -
 1. `java.util.Base64`
 2. `java.time`
 
-`java.util.Base64` is used in place of `javax.xml.bind.DatatypeConverter`, which is not available in Java8. 
+`java.util.Base64` is used in place of `javax.xml.bind.DatatypeConverter` for reading base64 bytes into bytes. ``javax.xml.bind.DatatypeConverter` is not available in Java8. 
 
 `java.time` is needed for parsing UTC time values. 
-
