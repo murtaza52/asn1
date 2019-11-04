@@ -1,15 +1,14 @@
 (ns asn1.parser
   (:require [clojure.pprint :refer [pprint]]
-            [asn1.common :refer [bit-7?]]
-            [asn1.tags :refer :all]
-            [asn1.oid :refer :all]
-            [asn1.buffer :refer :all])
+            [asn1.tags :as tags]
+            [asn1.oid :as oid]
+            [asn1.buffer :as buffer])
   (:gen-class))
 
 (defn get-triplet
   [[f & r]]
-  (let [{:keys [length-octets length]} (get-length r)
-        triplet                        {:tag     (int->tag-type f)
+  (let [{:keys [length-octets length]} (tags/get-length r)
+        triplet                        {:tag     (tags/get-tag-type f)
                                         :length  length
                                         :value (take length (drop length-octets r))}
         remaining-octets               (drop (+ length-octets length) r)
@@ -26,7 +25,7 @@
   (loop [coll coll
          acc  []]
     (let [[{:keys [tag length] :as m} remaining-octets triplet-octets] (get-triplet coll)
-          triplet                                                      (if (constructed-type? tag)
+          triplet                                                      (if (tags/constructed-type? tag)
                                                                          [(update m :value parse-tlv)]
                                                                          (parse-tlv triplet-octets))]
       (if (not (seq remaining-octets))
@@ -40,13 +39,13 @@
   [tag value]
   (case tag
     :sequence (get-triplet-seq value)
-    :integer (parse-integer value)
-    :object-identifier (get-oid-mapping value)
-    :printable-string (parse-string value)
-    :utf8-string (parse-string value)
-    :bit-string (parse-bit-string value)
-    :utc-time (parse-utc-time value)
-    :octet-string (parse-octet-string value)
+    :integer (tags/parse-integer value)
+    :object-identifier (oid/get-oid-mapping value)
+    :printable-string (tags/parse-string value)
+    :utf8-string (tags/parse-string value)
+    :bit-string (tags/parse-bit-string value)
+    :utc-time (tags/parse-utc-time value)
+    :octet-string (tags/parse-octet-string value)
     :null nil
     value))
 
@@ -65,7 +64,7 @@
 (parse-tlv d)
 ;; => [{:tag :sequence, :length 8, :value {:tag :sequence, :length 8, :value [{:tag :sequence, :length 6, :value [{:tag :integer, :length 1, :value (5)} {:tag :integer, :length 1, :value (53)}]}]}}]
 
-(def parse-asn1 (comp parse-tlv file->int-seq))
+(def parse-asn1 (comp parse-tlv buffer/file->seq))
 
 (def parse-and-print (comp pprint parse-asn1))
 

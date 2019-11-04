@@ -26,12 +26,12 @@
 (comment
   (extract-base64-string (read-lines "resources/keys/rsa_public.crt")))
 
-(defn base64-bytes
+(defn decode-base64-str
   [^String b64-str]
   (.decode (java.util.Base64/getDecoder) b64-str))
 
 (comment
-  (base64-bytes (remove-comments (read-lines "resources/keys/rsa_public.crt"))))
+  (decode-base64-str (remove-comments (read-lines "resources/keys/rsa_public.crt"))))
 
 (defn bytes->buffer
   [b64-bytes]
@@ -42,16 +42,15 @@
   (for [i (range (.limit bb))]
     (.get bb)))
 
-(defn file->int-seq
+(defn file->seq
   [path]
   (->> path
        read-lines
-       remove-comments
-       base64-bytes
+       extract-base64-string
+       decode-base64-str
        bytes->buffer
        buffer->int-seq
        (map (fn [v] (bit-and v 0xff)))))
 
 (comment
-  (def data (file->int-seq "resources/keys/rsa_public.crt")))
-
+  (def data (file->seq "resources/keys/rsa_public.crt")))

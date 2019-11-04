@@ -35,7 +35,7 @@
 (context-specific-tag? 0x06)
 ;; => false
 
-(defn int->tag-type
+(defn get-tag-type
   [v]
   (if (context-specific-tag? v)
     :context-specific-tag
@@ -44,10 +44,10 @@
      v
      {:tag-not-found-for-hex (Long/toHexString v)})))
 
-(int->tag-type 0x30)
+(get-tag-type 0x30)
 ;; => :sequence
 
-(int->tag-type 0xA0)
+(get-tag-type 0xA0)
 ;; => :context-specific-tag
 
 (def constructed-type? #{:sequence :set :context-specific-tag})
