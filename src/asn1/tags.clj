@@ -29,10 +29,10 @@
   [v]
   (= 2r10 (bit-shift-right v 6)))
 
-(context-specific-or-private-tag? 0xA0)
+(context-specific-tag? 0xA0)
 ;; => true
 
-(context-specific-or-private-tag? 0x06)
+(context-specific-tag? 0x06)
 ;; => false
 
 (defn int->tag-type
@@ -51,8 +51,6 @@
 ;; => :context-specific-tag
 
 (def constructed-type? #{:sequence :set :context-specific-tag})
-
-;; low-tag-number form (the high-tag-number-form is not coded, because in simple types we do not have tags above 30)
 
 (defn add-big-endians
   [v1 v2]
@@ -73,7 +71,7 @@
 (long-form-length? 0x82)
 
 (defn long-form-num-of-octets
-  "The 1-7 bits represent the num of octets"
+  "The 0-6 bits represent the num of octets"
   [v]
   (bit-and v 2r01111111))
 
@@ -87,6 +85,7 @@
 (calculate-long-form-length [0x03 0x0D])
 
 (defn get-length
+  "Returns the length (number of content-octets) and number of length-contents. Does not support indefinite length."
   [[f & r]]
   (cond
     (short-form-length? f) {:length-octets 1
@@ -95,11 +94,9 @@
                                 length (calculate-long-form-length (take num-of-octets r))]
                             {:length-octets (+ 1 num-of-octets)
                              :length length})))
-;; account for indefinite length
+
 (get-length [0x82 0x03 0x0D])
-
-;; account for a tag that is not universal
-
+;; => {:length-octets 3, :length 781}
 
 (defn parse-integer
   [coll]

@@ -22,10 +22,6 @@
 (decode-vlq [0x82 0x37])
 ;; => 311
 
-(decode-vlq [0x82 0x37 0x21]) ;; this is wrong, maybe the encoing is incorrect as given on the site.
-
-(Long/toBinaryString 0x37)
-
 (def oid-node-combinations
   (for [first-node (range 3) second-node (range 0 40)]
     [first-node second-node]))
@@ -71,7 +67,6 @@
         (recur r (conj nodes f))))))
 
 (get-oid [0x2b 0x06 0x01 0x04 0x01 0x82 0x37 0x15 0x14])
-;; => "1.3.6.1.4.1.2.55.21.20"
 ;; => "1.3.6.1.4.1.311.21.20"
 
 (get-oid [0x06 0x06 0x2a 0x86 0x48 0x86 0xf7 0x0d])
@@ -94,6 +89,7 @@
   (get oid-code->oid-name* code :mapping-not-available))
 
 (oid-code->oid-name "1.3.6.1.4.1.311.21.20")
+;; => :mapping-not-available
 
 (defn get-oid-mapping
   [coll]

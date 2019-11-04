@@ -10,24 +10,28 @@
   [path]
   (doall (line-seq (io/reader path))))
 
-(comment (read-lines "resources/public.crt"))
+(comment
+  (read-lines "resources/keys/rsa_public.crt"))
 
 (defn comment?
   [line]
   (str/starts-with? line "----"))
 
-(defn remove-comments
+(defn extract-base64-string
   [coll]
-  (reduce str "" (remove comment? coll)))
+  (->> coll
+       (remove comment?)
+       (apply str "")))
 
-(comment (remove-comments (read-lines "resources/public.crt")))
+(comment
+  (extract-base64-string (read-lines "resources/keys/rsa_public.crt")))
 
 (defn base64-bytes
   [^String b64-str]
   (.decode (java.util.Base64/getDecoder) b64-str))
 
-(comment (base64-bytes (remove-comments (read-lines "resources/public.crt")))
-         (base64-bytes (remove-comments (read-lines "resources/keys/ec.pem"))))
+(comment
+  (base64-bytes (remove-comments (read-lines "resources/keys/rsa_public.crt"))))
 
 (defn bytes->buffer
   [b64-bytes]
@@ -48,10 +52,6 @@
        buffer->int-seq
        (map (fn [v] (bit-and v 0xff)))))
 
-
 (comment
-  (def data (file->int-seq "resources/public.crt"))
-  (take 5 data)
-  )
+  (def data (file->int-seq "resources/keys/rsa_public.crt")))
 
-;; look into clojure io and understand buffers etc
