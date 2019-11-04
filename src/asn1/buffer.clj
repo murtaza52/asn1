@@ -10,9 +10,6 @@
   [path]
   (doall (line-seq (io/reader path))))
 
-(comment
-  (read-lines "resources/keys/rsa_public.crt"))
-
 (defn comment?
   [line]
   (str/starts-with? line "----"))
@@ -23,15 +20,9 @@
        (remove comment?)
        (apply str "")))
 
-(comment
-  (extract-base64-string (read-lines "resources/keys/rsa_public.crt")))
-
 (defn decode-base64-str
   [^String b64-str]
   (.decode (java.util.Base64/getDecoder) b64-str))
-
-(comment
-  (decode-base64-str (remove-comments (read-lines "resources/keys/rsa_public.crt"))))
 
 (defn bytes->buffer
   [b64-bytes]
@@ -53,4 +44,7 @@
        (map (fn [v] (bit-and v 0xff)))))
 
 (comment
-  (def data (file->seq "resources/keys/rsa_public.crt")))
+  (read-lines "resources/keys/rsa_public.crt")
+  (extract-base64-string (read-lines "resources/keys/rsa_public.crt"))
+  (decode-base64-str (remove-comments (read-lines "resources/keys/rsa_public.crt")))
+  (file->seq "resources/keys/rsa_public.crt"))

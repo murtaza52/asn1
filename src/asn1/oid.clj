@@ -7,7 +7,6 @@
   [current-node]
   (and (bit-7? current-node) (> current-node 127)))
 
-
 ;; based on java code from rosetta stone
 (defn decode-vlq
   [coll]
@@ -15,12 +14,6 @@
             (bit-or (bit-shift-left v 7) (bit-and encoded-val 0x7f)))
           0
           coll))
-
-(decode-vlq [0x86 0x48])
-;; => 840
-
-(decode-vlq [0x82 0x37])
-;; => 311
 
 (def oid-node-combinations
   (for [first-node (range 3) second-node (range 0 40)]
@@ -39,9 +32,6 @@
             [first-node second-node]))
         oid-node-combinations))
 
-(get-first-two-oid-nodes 0x55)
-;; => [2 5]
-
 (defn split-with-vlq
   [coll]
   (loop [[f & r] coll
@@ -50,9 +40,6 @@
             (not (bit-7? f)))
       [(conj acc f) r]
       (recur r (conj acc f)))))
-
-(split-with-vlq [0x82 0x37 0x82 0x15 0x14])
-;; => [[130 55] (130 21 20)]
 
 (defn get-oid
   [coll]
@@ -66,13 +53,7 @@
           (recur remaining-nodes (conj nodes (decode-vlq vlq-nodes))))
         (recur r (conj nodes f))))))
 
-(get-oid [0x2b 0x06 0x01 0x04 0x01 0x82 0x37 0x15 0x14])
-;; => "1.3.6.1.4.1.311.21.20"
-
-(get-oid [0x06 0x06 0x2a 0x86 0x48 0x86 0xf7 0x0d])
-;; => "0.6.6.42.840.113549"
-
-;; code mappings taken from https://holtstrom.com/michael/tools/asn1decoder.php
+;; oid mappings taken from https://holtstrom.com/michael/tools/asn1decoder.php
 (def oid-code->oid-name*
   (->> "resources/oids.txt"
        read-lines
@@ -88,11 +69,17 @@
   [code]
   (get oid-code->oid-name* code :mapping-not-available))
 
-(oid-code->oid-name "1.3.6.1.4.1.311.21.20")
-;; => :mapping-not-available
-
 (defn get-oid-mapping
   [coll]
   (let [oid (get-oid coll)]
     {:oid oid
      :oid-text (oid-code->oid-name oid)}))
+
+(comment
+  (oid-code->oid-name "1.3.6.1.4.1.311.21.20")
+  (get-oid [0x06 0x06 0x2a 0x86 0x48 0x86 0xf7 0x0d])
+  (get-oid [0x2b 0x06 0x01 0x04 0x01 0x82 0x37 0x15 0x14])
+  (split-with-vlq [0x82 0x37 0x82 0x15 0x14])
+  (get-first-two-oid-nodes 0x55)
+  (decode-vlq [0x82 0x37])
+  (decode-vlq [0x86 0x48]))
