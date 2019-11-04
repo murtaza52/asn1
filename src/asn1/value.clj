@@ -1,8 +1,6 @@
 (ns asn1.value
   (:require [asn1.common :refer [to-hex]]
-            [asn1.oid :as oid])
-  (:import java.time.Instant
-           java.time.Year))
+            [asn1.oid :as oid]))
 
 (defn parse-integer
   [coll]
@@ -18,7 +16,12 @@
 
 (defn get-this-year
   []
-  (Integer/parseInt (.toString (Year/now))))
+
+  ;; to be used when java 8 dependency can be pulled in
+  ;; (Integer/parseInt (.toString (java.time.Year/now)))
+
+  2019)
+
 
 ;; code taken from https://github.com/dankreek/clj-asn1/blob/master/src/clj_asn1/core.clj
 (defn calculate-century
@@ -41,8 +44,7 @@
   (->> coll
        (partition 2)
        (map #(parse-string %))
-       format-date
-       (Instant/parse)))
+       format-date))
 
 (defn parse-octet-string
   [coll]
