@@ -3,8 +3,7 @@
             [clojure.java.io :as io]
             [clojure.pprint  :refer [pprint]])
   (:import java.io.RandomAccessFile
-           java.nio.ByteBuffer
-           java.util.Base64))
+           java.nio.ByteBuffer))
 
 (defn read-lines
   [path]
@@ -20,9 +19,15 @@
        (remove comment?)
        (apply str "")))
 
+;; for java8
 (defn decode-base64-str
   [^String b64-str]
   (.decode (java.util.Base64/getDecoder) b64-str))
+
+;; for java7
+;; (defn decode-base64-str
+;;   [^String b64-str]
+;;   (javax.xml.bind.DatatypeConverter/parseBase64Binary b64-str))
 
 (defn bytes->buffer
   [b64-bytes]
